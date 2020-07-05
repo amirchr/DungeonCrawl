@@ -66,11 +66,6 @@ void initializeUI(WINDOW *view, WINDOW *buttons[]) {
 	curs_set(0);
 	keypad(stdscr, TRUE);
 
-	//setup 'screen'/view window
-	view = newwin(1-LINES/3, COLS, 0, 0);
-	wprintw(view, "Welcome to the GAME >:)");
-	wrefresh(view);
-
 	//setup lower nav window
 	WINDOW *nav = newwin(LINES/3, COLS, LINES-(LINES/3), 0);
 	box(nav, 0, 0);
@@ -89,7 +84,7 @@ void initializeUI(WINDOW *view, WINDOW *buttons[]) {
 			buttons[index] = newwin(
 					maxRow/2-1,
 					maxCol/3-1,
-					startRow+1+(i*(maxRow/2-1)),
+					startRow+1+(i*(maxRow/2)),
 					startCol+1+(j*(maxCol/3-1))
 				);
 			box(buttons[index], 0, ' ');
@@ -100,6 +95,15 @@ void initializeUI(WINDOW *view, WINDOW *buttons[]) {
 			wrefresh(buttons[index]);
 		}
 	}
+
+	//setup 'screen'/view window
+	view = newwin(LINES-LINES/3-1, COLS-2, 1, 1);
+	box(view, 0, 0);
+	string mess = "Welcome to the Game >:)";
+	const char *msg = mess.c_str();
+	mvwprintw(view, (LINES-LINES/3-1)/2, ((COLS)/2)-mess.length()/2, msg);
+	refresh();
+	wrefresh(view);
 }
 
 int game() {
