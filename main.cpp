@@ -1,37 +1,79 @@
 //In Notepad++: Ctrl-6 to compile, Ctrl-7 to compile and run
 
+#include <ncurses.h>
+#include <unistd.h>
 #include <iostream>
 
-auto& cout = std::cout;
-auto& cin = std::cin;
-typedef std::string string;
+using std::cout;
+using std::cin;
+using std::string;
+
+int game();
 
 int main() {
-	bool start = true;
-	
-	while(start) {
-	
-		bool cont = false;
-		char input;
 
-		cout << "\nWould you like to enter the dungeon?\n";
-		cin >> input;
+	bool cont = true;
+	char input = 'n';
+
+	cout << "A lion head asks you, \"Would you like to enter the dungeon?\"\n(y/n)\n";
+	cin >> input;
+	cout << "\n";
 	
-		if(toupper(input) == 'Y') cont = true;
+	while(cont) {	
 	
-		while(cont) {
-			cout << "\nWould you still like to be here?\n";
+		cout << "Good luck...";
+		/*cout.flush();
+		sleep(1);
+		cout << ".";
+		cout.flush();
+		sleep(1);
+		cout << ".";
+		cout.flush();
+		sleep(1);
+		cout << ".\n";*/
+	
+		int result = game();
+	
+		if(result == -1) {
+			cout << "\e[2J\e[HSorry! better luck next time.\nEnter X to leave... Enter R to try again...\n";
 			cin >> input;
-	
-			if(toupper(input) == 'N') cont = false;
+			cout << "\n";
+		} else {
+			cout << "well done! here's a cookie for beating the dungeon.\n";
+			cont = false;
 		}
-	
-		cout << "\nEnter X to leave... Enter R to try again...\n";
-		cin >> input;
 	
 		if(toupper(input) == 'X') {
-			start = false;
+			cont = false;
 		}
 	}
+
 	return 0;
+}
+
+int game() {
+
+	initscr();
+	clear();
+	cbreak();
+	noecho();
+	keypad(stdscr, TRUE);
+
+	int maxRow,maxCol;
+	getmaxyx(stdscr,maxRow,maxCol);
+
+	WINDOW *win = newwin(LINES/3, COLS, LINES-(LINES/3), 0);
+	box(win, 0, 0);
+	refresh();
+	wrefresh(win);
+	getch();
+
+	mvprintw(LINES/3, COLS/2.5,"Welcome to the game >:)");
+	refresh();
+	getch();
+	clear();
+	
+	endwin();
+
+	return -1;
 }
