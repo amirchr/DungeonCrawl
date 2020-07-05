@@ -12,13 +12,17 @@ int game();
 
 int main() {
 
-	bool cont = true;
+	bool cont = false;
 	char input = 'n';
 
 	cout << "A lion head asks you, \"Would you like to enter the dungeon?\"\n(y/n)\n";
 	cin >> input;
 	cout << "\n";
 	
+	if(tolower(input) == 'y') {
+		cont = true;
+	}
+
 	while(cont) {	
 	
 		cout << "Good luck...";
@@ -35,9 +39,10 @@ int main() {
 		int result = game();
 	
 		if(result == -1) {
-			cout << "\e[2J\e[HSorry! better luck next time.\nEnter X to leave... Enter R to try again...\n";
-			cin >> input;
-			cout << "\n";
+			cout << "\e[2J\e[H\n\nSorry! better luck next time.\n\n\n";//\nEnter X to leave... Enter R to try again...\n";
+			//cin >> input;
+			//cout << "\n";
+			cont = false;
 		} else {
 			cout << "well done! here's a cookie for beating the dungeon.\n";
 			cont = false;
@@ -51,25 +56,58 @@ int main() {
 	return 0;
 }
 
-int game() {
+void initializeUI(WINDOW *view, WINDOW *buttons[]) {
 
+	//initial ncurses setup settings
 	initscr();
 	clear();
 	cbreak();
 	noecho();
+	curs_set(0);
 	keypad(stdscr, TRUE);
 
-	int maxRow,maxCol;
-	getmaxyx(stdscr,maxRow,maxCol);
+	//setup 'screen'/view window
+	view = newwin(1-LINES/3, COLS, 0, 0);
+	wprintw(view, "Welcome to the GAME >:)");
+	wrefresh(view);
 
-	WINDOW *win = newwin(LINES/3, COLS, LINES-(LINES/3), 0);
-	box(win, 0, 0);
+	//setup lower nav window
+	WINDOW *nav = newwin(LINES/3, COLS, LINES-(LINES/3), 0);
+	box(nav, 0, 0);
 	refresh();
-	wrefresh(win);
-	getch();
+	wrefresh(nav);
 
-	mvprintw(LINES/3, COLS/2.5,"Welcome to the game >:)");
-	refresh();
+	//initialize button size, placement, and initial text
+	int startRow, startCol, maxRow, maxCol;
+	getbegyx(nav, startRow, startCol);
+	getmaxyx(nav, maxRow, maxCol);
+	for(int i = 0; i < 2; i++) {
+		int newMaxRow, newMaxCol;
+		for(int j = 0; j < 3; j++) {
+			int index = i*3+j;
+			//create button and place it on lower third of screen
+			buttons[index] = newwin(
+					maxRow/2-1,
+					maxCol/3-1,
+					startRow+1+(i*(maxRow/2-1)),
+					startCol+1+(j*(maxCol/3-1))
+				);
+			box(buttons[index], 0, ' ');
+
+			//add text and place in the middle of buttons
+			getmaxyx(buttons[index], newMaxRow, newMaxCol);
+			mvwprintw(buttons[index], newMaxRow/2-1, newMaxCol/2-3, "Button");
+			wrefresh(buttons[index]);
+		}
+	}
+}
+
+int game() {
+
+	WINDOW *buttons[6];
+	WINDOW *textView;
+
+	initializeUI(textView, buttons);
 	getch();
 	clear();
 	
