@@ -56,7 +56,15 @@ int main() {
 	return 0;
 }
 
-void initializeUI(WINDOW *view, WINDOW *buttons[]) {
+void initializeUI(WINDOW view, WINDOW buttons[]) {
+
+	
+}
+
+int game() {
+
+	WINDOW *buttons[6];
+	WINDOW *textView;
 
 	//initial ncurses setup settings
 	initscr();
@@ -97,21 +105,22 @@ void initializeUI(WINDOW *view, WINDOW *buttons[]) {
 	}
 
 	//setup 'screen'/view window
-	view = newwin(LINES-LINES/3-1, COLS-2, 1, 1);
-	box(view, 0, 0);
+	textView = newwin(LINES-LINES/3-1, COLS-2, 1, 1);
+	box(textView, 0, 0);
 	string mess = "Welcome to the Game >:)";
 	const char *msg = mess.c_str();
-	mvwprintw(view, (LINES-LINES/3-1)/2, ((COLS)/2)-mess.length()/2, msg);
+	mvwprintw(textView, (LINES-LINES/3-1)/2, ((COLS)/2-mess.length()/2), msg);
 	refresh();
-	wrefresh(view);
-}
+	wrefresh(textView);
 
-int game() {
+	getch();
+	werase(textView);
+	box(textView, 0, 0);
 
-	WINDOW *buttons[6];
-	WINDOW *textView;
-
-	initializeUI(textView, buttons);
+	mess = "I know it's not much yet... I'm working on it";
+	msg = mess.c_str();
+	mvwprintw(textView, (LINES-LINES/3-1)/2, ((COLS)/2-mess.length()/2), msg);
+	wrefresh(textView);
 	getch();
 	clear();
 	
