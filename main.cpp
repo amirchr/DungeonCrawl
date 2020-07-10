@@ -1,14 +1,15 @@
-//In Notepad++: Ctrl-6 to compile, Ctrl-7 to compile and run
-
+#include <curses.h>
 #include <ncurses.h>
 #include <unistd.h>
 #include <iostream>
+#include <string.h>
 
 using std::cout;
 using std::cin;
 using std::string;
 
-int game();
+int startGame();
+void updateText();
 
 int main() {
 
@@ -36,7 +37,7 @@ int main() {
 		sleep(1);
 		cout << ".\n";*/
 	
-		int result = game();
+		int result = startGame();
 	
 		if(result == -1) {
 			cout << "\e[2J\e[H\n\nSorry! better luck next time.\n\n\n";//\nEnter X to leave... Enter R to try again...\n";
@@ -56,15 +57,7 @@ int main() {
 	return 0;
 }
 
-void initializeUI(WINDOW view, WINDOW buttons[]) {
-
-	
-}
-
-int game() {
-
-	WINDOW *buttons[6];
-	WINDOW *textView;
+int startGame() {
 
 	//initial ncurses setup settings
 	initscr();
@@ -73,17 +66,20 @@ int game() {
 	noecho();
 	curs_set(0);
 	keypad(stdscr, TRUE);
+	refresh();
 
 	//setup lower nav window
 	WINDOW *nav = newwin(LINES/3, COLS, LINES-(LINES/3), 0);
 	box(nav, 0, 0);
-	refresh();
 	wrefresh(nav);
 
 	//initialize button size, placement, and initial text
+	WINDOW *buttons[6];
 	int startRow, startCol, maxRow, maxCol;
+	const char *labels[] = {"Next","button","BUTTon","Previous","butt-on","Button"};
 	getbegyx(nav, startRow, startCol);
 	getmaxyx(nav, maxRow, maxCol);
+	wattron(buttons[0], A_BOLD);
 	for(int i = 0; i < 2; i++) {
 		int newMaxRow, newMaxCol;
 		for(int j = 0; j < 3; j++) {
@@ -97,29 +93,26 @@ int game() {
 				);
 			box(buttons[index], 0, ' ');
 
+			if(index == 0) wattron(buttons[index], A_BOLD);
 			//add text and place in the middle of buttons
 			getmaxyx(buttons[index], newMaxRow, newMaxCol);
-			mvwprintw(buttons[index], newMaxRow/2-1, newMaxCol/2-3, "Button");
+			mvwprintw(buttons[index], newMaxRow/2-1, newMaxCol/2-strlen(labels[index])/2, labels[index]);
 			wrefresh(buttons[index]);
 		}
 	}
 
 	//setup 'screen'/view window
-	textView = newwin(LINES-LINES/3-1, COLS-2, 1, 1);
+	WINDOW *textView = newwin(LINES-LINES/3-1, COLS-2, 1, 1);
 	box(textView, 0, 0);
-	string mess = "Welcome to the Game >:)";
-	const char *msg = mess.c_str();
-	mvwprintw(textView, (LINES-LINES/3-1)/2, ((COLS)/2-mess.length()/2), msg);
-	refresh();
+	const char *msg = "Welcome to the Game >:)";
+	mvwprintw(textView, (LINES-LINES/3-1)/2, ((COLS)/2-strlen(msg)/2), msg);
 	wrefresh(textView);
 
 	getch();
-	werase(textView);
-	box(textView, 0, 0);
+	wrefresh(textView);
 
-	mess = "I know it's not much yet... I'm working on it";
-	msg = mess.c_str();
-	mvwprintw(textView, (LINES-LINES/3-1)/2, ((COLS)/2-mess.length()/2), msg);
+	msg = "I know it's not much yet... I'm working on it";
+	mvwprintw(textView, (LINES-LINES/3-1)/2, ((COLS)/2-strlen(msg)/2), msg);
 	wrefresh(textView);
 	getch();
 	clear();
@@ -127,4 +120,9 @@ int game() {
 	endwin();
 
 	return -1;
+}
+
+void updateText() {
+
+	
 }
