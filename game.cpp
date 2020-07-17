@@ -73,13 +73,13 @@ int startGame() {
 	int input;
 
 	//setup lower nav window
-	WINDOW *nav = newwin(LINES/4, COLS, LINES-(LINES/4), 0);
+	WINDOW *nav = newwin(LINES/3, COLS, LINES-(LINES/3), 0);
 	box(nav, 0, 0);
 	wrefresh(nav);
 
 	//initialize button size, placement, and initial text
 	WINDOW *buttons[6];
-	/* int startRow, startCol, maxRow, maxCol;
+	int startRow, startCol, maxRow, maxCol;
 	getbegyx(nav, startRow, startCol);
 	getmaxyx(nav, maxRow, maxCol);
 	for(int i = 0; i < 2; i++) {
@@ -110,18 +110,18 @@ int startGame() {
 			//add text and place in the middle of buttons
 			wattroff(buttons[index], A_BOLD);
 		}
-	} */
-	//wrefresh(nav);
-	/*wrefresh(buttons[0]);
+	}
+	wrefresh(nav);
+	wrefresh(buttons[0]);
 	wrefresh(buttons[1]);
 	wrefresh(buttons[2]);
 	wrefresh(buttons[3]);
 	wrefresh(buttons[4]);
-	wrefresh(buttons[5]);*/
+	wrefresh(buttons[5]);
 
 	//setup 'screen'/view window
-	WINDOW *textView = newwin(LINES-LINES/4-1, COLS-2, 1, 1);
-	GameState state(textView);
+	WINDOW *textView = newwin(LINES-LINES/3-1, COLS-2, 1, 1);
+	GameState state(textView, buttons);
 	box(textView, 0, 0);
 	drawScreen(textView, nav, state);
 	updateText(textView, "Welcome to the Game >:)", "center");
@@ -177,7 +177,7 @@ void handleInput(int input, GameState *state) {
 	case KEY_BACKSPACE:
 		state->setHP(0);
 		break;
-	/* case KEY_LEFT: {
+	case KEY_LEFT: {
 		WINDOW *butt = state->getButton(state->highlightedButton);
 		wattrset(butt, 0);
 		updateText(butt, LABELS[state->highlightedButton], "center");
@@ -236,7 +236,7 @@ void handleInput(int input, GameState *state) {
 		updateText(newButt, LABELS[state->highlightedButton], "center");
 
 		break;
-	} */
+	}
 	default:
 		break;
 	}
