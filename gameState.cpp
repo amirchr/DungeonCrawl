@@ -3,12 +3,14 @@
 GameState::GameState(WINDOW *text) {
     hp = 20;
     maxhp = 20;
-    //highlightedButton = 0;
     textView = text;
 
-    /* for(int i = 0; i < 6; i++) {            //TODO: change hardcoded 6 to whatever length of butts is
-        buttons[i] = butts[i];
-    } */
+    //calculate player position
+    int lines, cols, beginx, beginy;
+    getmaxyx(textView, lines, cols);
+    getbegyx(textView, beginx, beginy);
+    playery = (beginy+lines)/2;
+    playerx = (beginx+cols)/2;
 }
 
 int GameState::getHP() {
@@ -27,6 +29,32 @@ void GameState::setHP(int val) {
     hp = val;
 }
 
-/* WINDOW *GameState::getButton(int index) {
-    return buttons[index];
-} */
+void GameState::movePlayerRight() {
+    int maxx, maxy;
+    getmaxyx(textView, maxy, maxx);
+
+    if(playerx < maxx - 1) {
+        playerx++;
+    }
+}
+
+void GameState::movePlayerLeft() {
+
+    if(playerx > 2) playerx--;
+}
+
+void GameState::movePlayerUp() {
+
+    if(playery > 2) playery--;
+}
+
+void GameState::movePlayerDown() {
+    
+    int maxx, maxy;
+    getmaxyx(textView, maxy, maxx);
+
+    if(playery < maxy - 1) playery++;
+}
+
+int GameState::getPlayerX() {   return playerx;     }
+int GameState::getPlayerY() {   return playery;     }

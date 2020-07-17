@@ -77,54 +77,12 @@ int startGame() {
 	box(nav, 0, 0);
 	wrefresh(nav);
 
-	//initialize button size, placement, and initial text
-	WINDOW *buttons[6];
-	/* int startRow, startCol, maxRow, maxCol;
-	getbegyx(nav, startRow, startCol);
-	getmaxyx(nav, maxRow, maxCol);
-	for(int i = 0; i < 2; i++) {
-		//int newMaxRow, newMaxCol;
-		for(int j = 0; j < 3; j++) {
-			int index = i*3+j;
-			//create button and place it on lower third of screen
-			buttons[index] = newwin(
-					maxRow/2-1,
-					maxCol/3-1,
-					startRow+(1-(i*1))+(i*(maxRow/2)),
-					startCol+1+(j*(maxCol/3-1))
-				);
-
-			if(index == 0) {
-				wattron(buttons[index], A_BOLD | COLOR_PAIR(1));
-				int buttBeginY, buttBeginX, maxButtY, maxButtX;
-        		getbegyx(buttons[index], buttBeginY, buttBeginX);
-				getmaxyx(buttons[index], maxButtY, maxButtX);
-        		for(int i = buttBeginY; i < LINES; i++) {              //scan over all lines in button[0] to draw bg color
-					mvwhline(buttons[index], i, 0, ' ', COLS);
-				}
-			}
-			updateText(buttons[index], LABELS[index], "center");
-			wattroff(buttons[index], COLOR_PAIR(1));
-			box(buttons[index], 0, ' ');
-			
-			//add text and place in the middle of buttons
-			wattroff(buttons[index], A_BOLD);
-		}
-	} */
-	//wrefresh(nav);
-	/*wrefresh(buttons[0]);
-	wrefresh(buttons[1]);
-	wrefresh(buttons[2]);
-	wrefresh(buttons[3]);
-	wrefresh(buttons[4]);
-	wrefresh(buttons[5]);*/
-
 	//setup 'screen'/view window
-	WINDOW *textView = newwin(LINES-LINES/4-1, COLS-2, 1, 1);
+	WINDOW *textView = newwin(LINES-LINES/4, COLS-2, 0, 1);
+
 	GameState state(textView);
 	box(textView, 0, 0);
 	drawScreen(textView, nav, state);
-	updateText(textView, "Welcome to the Game >:)", "center");
 
 	halfdelay(2);
 	getch();
@@ -177,66 +135,24 @@ void handleInput(int input, GameState *state) {
 	case KEY_BACKSPACE:
 		state->setHP(0);
 		break;
-	/* case KEY_LEFT: {
-		WINDOW *butt = state->getButton(state->highlightedButton);
-		wattrset(butt, 0);
-		updateText(butt, LABELS[state->highlightedButton], "center");
+	case KEY_LEFT: {
 
-		if(state->highlightedButton%3 == 0) state->highlightedButton += 2;
-		else state->highlightedButton--;
-
-		WINDOW * newButt = state->getButton(state->highlightedButton);
-		wattron(newButt, A_BOLD | COLOR_PAIR(1));
-		updateText(newButt, LABELS[state->highlightedButton], "center");
-
+		state->movePlayerLeft();
 		break;
 	}
 	case KEY_RIGHT: {
-		WINDOW *butt = state->getButton(state->highlightedButton);
-		wattrset(butt, 0);
-		for(int i = 0; i < LINES; i++) {              //scan over all lines in button[] to draw bg color
-			mvwhline(butt, i, 0, ' ', COLS);
-		}
-		box(butt, 0, ' ');
-		updateText(butt, LABELS[state->highlightedButton], "center");
 
-		if((state->highlightedButton+1)%3 == 0) state->highlightedButton -= 2;
-		else state->highlightedButton++;
-
-		WINDOW * newButt = state->getButton(state->highlightedButton);
-		wattron(newButt, A_BOLD | COLOR_PAIR(1));
-		updateText(newButt, LABELS[state->highlightedButton], "center");
-
+		state->movePlayerRight();
 		break;
 	}
 	case KEY_DOWN: {
-		WINDOW *butt = state->getButton(state->highlightedButton);
-		wattrset(butt, 0);
-		updateText(butt, LABELS[state->highlightedButton], "center");
-
-		if(state->highlightedButton >= 3) state->highlightedButton -= 3;
-		else state->highlightedButton += 3;
-
-		WINDOW * newButt = state->getButton(state->highlightedButton);
-		wattron(newButt, A_BOLD | COLOR_PAIR(1));
-		updateText(newButt, LABELS[state->highlightedButton], "center");
-
+		state->movePlayerDown();
 		break;
 	}
 	case KEY_UP: {
-		WINDOW *butt = state->getButton(state->highlightedButton);
-		wattrset(butt, 0);
-		updateText(butt, LABELS[state->highlightedButton], "center");
-
-		if(state->highlightedButton <= 2) state->highlightedButton += 3;
-		else state->highlightedButton -= 3;
-
-		WINDOW * newButt = state->getButton(state->highlightedButton);
-		wattron(newButt, A_BOLD | COLOR_PAIR(1));
-		updateText(newButt, LABELS[state->highlightedButton], "center");
-
+		state->movePlayerUp();
 		break;
-	} */
+	}
 	default:
 		break;
 	}
@@ -248,7 +164,11 @@ void drawScreen(WINDOW *win, WINDOW *nav, GameState state) {
 	wclear(win);
 	box(win, 0, 0);
 
-	//Update hp barr
+	//Update hp bar
 	const char *hptext = ("HP: " + std::to_string(state.getHP())).c_str();
 	updateText(win, hptext, "upperleft");
+
+	//place character token in the middle of the screen
+	move(state.getPlayerY(), state.getPlayerX());
+    addch(ACS_PLUS);
 }

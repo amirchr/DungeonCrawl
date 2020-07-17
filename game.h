@@ -1,6 +1,3 @@
-#include <string.h>
-#include <unistd.h>
-#include <iostream>
 #include "gameState.h"
 
 int startGame();
