@@ -82,19 +82,18 @@ int startGame() {
 
 	GameState state(textView);
 	box(textView, 0, 0);
-	drawScreen(textView, nav, state);
+
+    wrefresh(textView);
 
 	halfdelay(2);
 	getch();
-
-	std::cout << state.getHP();
 
 	while(cont) {
 		input = getch();									//take user input
 		handleInput(input, &state);							//update state based on input
 		drawScreen(textView, nav, state);					//redraw screen
 
-		if(state.getHP() == 0) {
+		if(state.getHP() <= 0) {
 			cont = false;
 		}
 	}
@@ -126,12 +125,6 @@ void updateText(WINDOW *win, const char *msg, const char *placement) {
 void handleInput(int input, GameState *state) {
 
 	switch(input) {
-	case 'w':
-		state->loseHP();
-		break;
-	case 's':
-		state->gainHP();
-		break;
 	case KEY_BACKSPACE:
 		state->setHP(0);
 		break;
@@ -156,6 +149,9 @@ void handleInput(int input, GameState *state) {
 	default:
 		break;
 	}
+
+	if(state->playerInDanger()) {
+	}
 }
 
 void drawScreen(WINDOW *win, WINDOW *nav, GameState state) {
@@ -164,11 +160,25 @@ void drawScreen(WINDOW *win, WINDOW *nav, GameState state) {
 	wclear(win);
 	box(win, 0, 0);
 
+	//place enemies on screen
+	int lines, cols, beginx, beginy;
+    getmaxyx(win, lines, cols);
+    getbegyx(win, beginx, beginy);
+
+    for(int i = 0; i < state.enemies; i++) {
+        mvwaddch(win,
+				state.enemyCoords[i][0],
+				state.enemyCoords[i][1],
+				(chtype)state.floor[state.enemyCoords[i][0]][state.enemyCoords[i][1]]);
+    }
+
 	//Update hp bar
-	const char *hptext = ("HP: " + std::to_string(state.getHP())).c_str();
-	updateText(win, hptext, "upperleft");
+	const char *hptext = ("HP: " + std::to_string(state.getHP()) + "  ").c_str();
+	updateText(nav, hptext, "upperleft");
 
 	//place character token in the middle of the screen
-	move(state.getPlayerY(), state.getPlayerX());
-    addch(ACS_PLUS);
+	wmove(win, state.getPlayerY(), state.getPlayerX());
+    waddch(win, ACS_PLUS);
+
+	wrefresh(win);
 }
