@@ -4,8 +4,6 @@ using std::cout;
 using std::cin;
 using std::string;
 
-const char *LABELS[] = {"Next","button","BUTTon","Previous","butt-on","Button"};
-
 int main() {
 
 	bool cont = false;
@@ -57,7 +55,7 @@ int startGame() {
 	//initial ncurses setup settings
 	initscr();
 	clear();
-	cbreak();
+	//cbreak();
 	noecho();
 	curs_set(0);
 	keypad(stdscr, TRUE);
@@ -73,70 +71,26 @@ int startGame() {
 	int input;
 
 	//setup lower nav window
-	WINDOW *nav = newwin(LINES/3, COLS, LINES-(LINES/3), 0);
+	WINDOW *nav = newwin(LINES/4, COLS, LINES-(LINES/4), 0);
 	box(nav, 0, 0);
 	wrefresh(nav);
 
-	//initialize button size, placement, and initial text
-	WINDOW *buttons[6];
-	int startRow, startCol, maxRow, maxCol;
-	getbegyx(nav, startRow, startCol);
-	getmaxyx(nav, maxRow, maxCol);
-	for(int i = 0; i < 2; i++) {
-		//int newMaxRow, newMaxCol;
-		for(int j = 0; j < 3; j++) {
-			int index = i*3+j;
-			//create button and place it on lower third of screen
-			buttons[index] = newwin(
-					maxRow/2-1,
-					maxCol/3-1,
-					startRow+(1-(i*1))+(i*(maxRow/2)),
-					startCol+1+(j*(maxCol/3-1))
-				);
-
-			if(index == 0) {
-				wattron(buttons[index], A_BOLD | COLOR_PAIR(1));
-				int buttBeginY, buttBeginX, maxButtY, maxButtX;
-        		getbegyx(buttons[index], buttBeginY, buttBeginX);
-				getmaxyx(buttons[index], maxButtY, maxButtX);
-        		for(int i = buttBeginY; i < LINES; i++) {              //scan over all lines in button[0] to draw bg color
-					mvwhline(buttons[index], i, 0, ' ', COLS);
-				}
-			}
-			updateText(buttons[index], LABELS[index], "center");
-			wattroff(buttons[index], COLOR_PAIR(1));
-			box(buttons[index], 0, ' ');
-			
-			//add text and place in the middle of buttons
-			wattroff(buttons[index], A_BOLD);
-		}
-	}
-	wrefresh(nav);
-	wrefresh(buttons[0]);
-	wrefresh(buttons[1]);
-	wrefresh(buttons[2]);
-	wrefresh(buttons[3]);
-	wrefresh(buttons[4]);
-	wrefresh(buttons[5]);
-
 	//setup 'screen'/view window
-	WINDOW *textView = newwin(LINES-LINES/3-1, COLS-2, 1, 1);
-	GameState state(textView, buttons);
+	WINDOW *textView = newwin(LINES-LINES/4, COLS-2, 0, 1);
+
+	GameState state(textView, nav);
 	box(textView, 0, 0);
-	drawScreen(textView, nav, state);
-	updateText(textView, "Welcome to the Game >:)", "center");
+
+    wrefresh(textView);
 
 	halfdelay(2);
-	getch();
-
-	std::cout << state.getHP();
 
 	while(cont) {
 		input = getch();									//take user input
 		handleInput(input, &state);							//update state based on input
-		drawScreen(textView, nav, state);					//redraw screen
+		drawScreen(&state);									//redraw screen
 
-		if(state.getHP() == 0) {
+		if(state.getHP() <= 0) {
 			cont = false;
 		}
 	}
@@ -168,87 +122,75 @@ void updateText(WINDOW *win, const char *msg, const char *placement) {
 void handleInput(int input, GameState *state) {
 
 	switch(input) {
-	case 'w':
-		state->loseHP();
-		break;
-	case 's':
-		state->gainHP();
-		break;
 	case KEY_BACKSPACE:
 		state->setHP(0);
 		break;
 	case KEY_LEFT: {
-		WINDOW *butt = state->getButton(state->highlightedButton);
-		wattrset(butt, 0);
-		updateText(butt, LABELS[state->highlightedButton], "center");
 
-		if(state->highlightedButton%3 == 0) state->highlightedButton += 2;
-		else state->highlightedButton--;
-
-		WINDOW * newButt = state->getButton(state->highlightedButton);
-		wattron(newButt, A_BOLD | COLOR_PAIR(1));
-		updateText(newButt, LABELS[state->highlightedButton], "center");
-
+		state->movePlayerLeft();
 		break;
 	}
 	case KEY_RIGHT: {
-		WINDOW *butt = state->getButton(state->highlightedButton);
-		wattrset(butt, 0);
-		for(int i = 0; i < LINES; i++) {              //scan over all lines in button[] to draw bg color
-			mvwhline(butt, i, 0, ' ', COLS);
-		}
-		box(butt, 0, ' ');
-		updateText(butt, LABELS[state->highlightedButton], "center");
 
-		if((state->highlightedButton+1)%3 == 0) state->highlightedButton -= 2;
-		else state->highlightedButton++;
-
-		WINDOW * newButt = state->getButton(state->highlightedButton);
-		wattron(newButt, A_BOLD | COLOR_PAIR(1));
-		updateText(newButt, LABELS[state->highlightedButton], "center");
-
+		state->movePlayerRight();
 		break;
 	}
 	case KEY_DOWN: {
-		WINDOW *butt = state->getButton(state->highlightedButton);
-		wattrset(butt, 0);
-		updateText(butt, LABELS[state->highlightedButton], "center");
-
-		if(state->highlightedButton >= 3) state->highlightedButton -= 3;
-		else state->highlightedButton += 3;
-
-		WINDOW * newButt = state->getButton(state->highlightedButton);
-		wattron(newButt, A_BOLD | COLOR_PAIR(1));
-		updateText(newButt, LABELS[state->highlightedButton], "center");
-
+		state->movePlayerDown();
 		break;
 	}
 	case KEY_UP: {
-		WINDOW *butt = state->getButton(state->highlightedButton);
-		wattrset(butt, 0);
-		updateText(butt, LABELS[state->highlightedButton], "center");
-
-		if(state->highlightedButton <= 2) state->highlightedButton += 3;
-		else state->highlightedButton -= 3;
-
-		WINDOW * newButt = state->getButton(state->highlightedButton);
-		wattron(newButt, A_BOLD | COLOR_PAIR(1));
-		updateText(newButt, LABELS[state->highlightedButton], "center");
-
+		state->movePlayerUp();
 		break;
 	}
 	default:
 		break;
 	}
+
+	if(state->playerInDanger()) {
+		drawScreen(state);
+
+		wclear(state->textView);
+		wclear(state->nav);
+		clear();
+
+		Combat combat;
+		combat.start();
+
+		state->removeEnemy();
+
+		drawScreen(state);
+	}
 }
 
-void drawScreen(WINDOW *win, WINDOW *nav, GameState state) {
+void drawScreen(GameState *state) {
 
 	//clear and reset border
-	wclear(win);
-	box(win, 0, 0);
+	wclear(state->textView);
+	box(state->textView, 0, 0);
 
-	//Update hp barr
-	const char *hptext = ("HP: " + std::to_string(state.getHP())).c_str();
-	updateText(win, hptext, "upperleft");
+	//place enemies on screen
+	int lines, cols, beginx, beginy;
+    getmaxyx(state->textView, lines, cols);
+    getbegyx(state->textView, beginx, beginy);
+
+    for(int i = 0; i < state->enemies; i++) {
+        if(state->enemyCoords[i][0] > 0 && state->enemyCoords[i][1] > 0) {
+			mvwaddch(state->textView,
+				state->enemyCoords[i][0],
+				state->enemyCoords[i][1],
+				(chtype)state->floor[state->enemyCoords[i][0]][state->enemyCoords[i][1]]);
+		}
+    }
+
+	//Update hp bar
+	const char *hptext = ("HP: " + std::to_string(state->getHP()) + "  ").c_str();
+	updateText(state->nav, hptext, "upperleft");
+	box(state->nav, 0, 0);
+
+	//place character token in the middle of the screen
+	wmove(state->textView, state->getPlayerY(), state->getPlayerX());
+    waddch(state->textView, ACS_PLUS);
+
+	wrefresh(state->textView);
 }
