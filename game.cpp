@@ -4,7 +4,7 @@ using std::cout;
 using std::cin;
 using std::string;
 
-const char *LABELS[] = {"Next","button","BUTTon","Previous","butt-on","Button"};
+//const char *LABELS[] = {"Next","button","BUTTon","Previous","butt-on","Button"};
 
 int main() {
 
@@ -57,7 +57,7 @@ int startGame() {
 	//initial ncurses setup settings
 	initscr();
 	clear();
-	cbreak();
+	//cbreak();
 	noecho();
 	curs_set(0);
 	keypad(stdscr, TRUE);
@@ -80,18 +80,17 @@ int startGame() {
 	//setup 'screen'/view window
 	WINDOW *textView = newwin(LINES-LINES/4, COLS-2, 0, 1);
 
-	GameState state(textView);
+	GameState state(textView, nav);
 	box(textView, 0, 0);
 
     wrefresh(textView);
 
 	halfdelay(2);
-	getch();
 
 	while(cont) {
 		input = getch();									//take user input
 		handleInput(input, &state);							//update state based on input
-		drawScreen(textView, nav, state);					//redraw screen
+		drawScreen(&state);									//redraw screen
 
 		if(state.getHP() <= 0) {
 			cont = false;
@@ -151,34 +150,49 @@ void handleInput(int input, GameState *state) {
 	}
 
 	if(state->playerInDanger()) {
+		drawScreen(state);
+
+		wclear(state->textView);
+		wclear(state->nav);
+		clear();
+
+		Combat combat;
+		combat.start();
+
+		state->removeEnemy();
+
+		drawScreen(state);
 	}
 }
 
-void drawScreen(WINDOW *win, WINDOW *nav, GameState state) {
+void drawScreen(GameState *state) {
 
 	//clear and reset border
-	wclear(win);
-	box(win, 0, 0);
+	wclear(state->textView);
+	box(state->textView, 0, 0);
 
 	//place enemies on screen
 	int lines, cols, beginx, beginy;
-    getmaxyx(win, lines, cols);
-    getbegyx(win, beginx, beginy);
+    getmaxyx(state->textView, lines, cols);
+    getbegyx(state->textView, beginx, beginy);
 
-    for(int i = 0; i < state.enemies; i++) {
-        mvwaddch(win,
-				state.enemyCoords[i][0],
-				state.enemyCoords[i][1],
-				(chtype)state.floor[state.enemyCoords[i][0]][state.enemyCoords[i][1]]);
+    for(int i = 0; i < state->enemies; i++) {
+        if(state->enemyCoords[i][0] > 0 && state->enemyCoords[i][1] > 0) {
+			mvwaddch(state->textView,
+				state->enemyCoords[i][0],
+				state->enemyCoords[i][1],
+				(chtype)state->floor[state->enemyCoords[i][0]][state->enemyCoords[i][1]]);
+		}
     }
 
 	//Update hp bar
-	const char *hptext = ("HP: " + std::to_string(state.getHP()) + "  ").c_str();
-	updateText(nav, hptext, "upperleft");
+	const char *hptext = ("HP: " + std::to_string(state->getHP()) + "  ").c_str();
+	updateText(state->nav, hptext, "upperleft");
+	box(state->nav, 0, 0);
 
 	//place character token in the middle of the screen
-	wmove(win, state.getPlayerY(), state.getPlayerX());
-    waddch(win, ACS_PLUS);
+	wmove(state->textView, state->getPlayerY(), state->getPlayerX());
+    waddch(state->textView, ACS_PLUS);
 
-	wrefresh(win);
+	wrefresh(state->textView);
 }

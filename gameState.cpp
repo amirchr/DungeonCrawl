@@ -1,11 +1,12 @@
 #include "gameState.h"
 
-GameState::GameState(WINDOW *text) {
+GameState::GameState(WINDOW *text, WINDOW *navwin) {
     srand(time(0));
 
     hp = 20;
     maxhp = 20;
     textView = text;
+    nav = navwin;
 
     //calculate player position
     int lines, cols, beginx, beginy;
@@ -87,4 +88,14 @@ bool GameState::playerInDanger() {
     }
 
     return false;
+}
+
+void GameState::removeEnemy() {
+
+    for(int i = 0; i < enemies; i++) {
+        if(enemyCoords[i][0] == playery && enemyCoords[i][1] == playerx) {
+            enemyCoords[i][0] = -1;
+            enemyCoords[i][1] = -1;
+        }
+    }
 }
